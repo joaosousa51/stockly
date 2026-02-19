@@ -16,6 +16,10 @@
 </div>
 
 ---
+## 📸 Screenshots
+<img width="1869" height="946" alt="Screenshot 2026-02-18 at 21-40-16 Stockly - Controle de Estoque" src="https://github.com/user-attachments/assets/a22c1bb2-d511-4ac1-9511-7c07a6c81c2f" />
+<img width="1869" height="946" alt="Screenshot 2026-02-18 at 21-40-07 Stockly - Controle de Estoque" src="https://github.com/user-attachments/assets/e4729caf-e318-4259-930e-8f278ce59a67" />
+
 
 ## ✨ Funcionalidades
 
