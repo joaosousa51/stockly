@@ -1,0 +1,55 @@
+# Alternativa usando MySQL em vez de PostgreSQL
+# Rode com: docker compose -f docker-compose.mysql.yml up --build
+
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: stockly-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: stockly
+      MYSQL_USER: stockly_user
+      MYSQL_PASSWORD: stockly_pass
+      MYSQL_ROOT_PASSWORD: root_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: stockly-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql+aiomysql://stockly_user:stockly_pass@mysql:3306/stockly
+      CORS_ORIGINS: http://localhost:5173
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: stockly-web
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

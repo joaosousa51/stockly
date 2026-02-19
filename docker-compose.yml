@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+  # ====== BANCO DE DADOS ======
+  postgres:
+    image: postgres:16-alpine
+    container_name: stockly-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: stockly
+      POSTGRES_USER: stockly_user
+      POSTGRES_PASSWORD: stockly_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stockly_user -d stockly"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ====== BACKEND ======
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: stockly-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://stockly_user:stockly_pass@postgres:5432/stockly
+      CORS_ORIGINS: http://localhost:5173
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+
+  # ====== FRONTEND ======
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: stockly-web
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
