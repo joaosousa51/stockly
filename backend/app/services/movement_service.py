@@ -10,8 +10,14 @@ from app.schemas.movement import MovementCreate
 async def create_movement(db: AsyncSession, data: MovementCreate) -> Movement:
     """Registrar movimentação e atualizar estoque do produto"""
 
-    # Buscar produto
-    result = await db.execute(select(Product).where(Product.id == data.product_id))
+    # Buscar produto travando a linha ate o fim da transacao.
+    #
+    # Sem o with_for_update(), duas saidas simultaneas do mesmo produto leem a
+    # mesma quantidade, as duas passam na validacao abaixo e as duas subtraem:
+    # produto com 5 unidades aceita duas saidas de 5 e termina com -5.
+    result = await db.execute(
+        select(Product).where(Product.id == data.product_id).with_for_update()
+    )
     product = result.scalar_one_or_none()
 
     if not product:
