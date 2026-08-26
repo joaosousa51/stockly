@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import select, func
@@ -47,9 +49,14 @@ async def get_stats(db: AsyncSession = Depends(get_db)):
     )
     total_value = round(value_result.scalar() or 0, 2)
 
-    # Movimentações de hoje
-    from datetime import date
-    today = date.today()
+    # Movimentações de hoje.
+    #
+    # created_at vem do now() do Postgres, que no container roda em UTC. O
+    # date.today() daqui usa o fuso do processo. Comparar os dois fazia a
+    # movimentação registrada depois das 21h em Brasília contar como sendo de
+    # amanhã. Comparo em UTC dos dois lados; as métricas do dia são UTC e isso
+    # está dito no README.
+    today = datetime.now(timezone.utc).date()
 
     entries_result = await db.execute(
         select(func.count(Movement.id)).where(
