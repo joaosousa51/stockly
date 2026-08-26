@@ -4,6 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductUpdate
 
+# Lista branca de ordenacao. O getattr sozinho nao bastava: o default so cobre
+# nome inexistente, e qualquer atributo que EXISTA no model sem ser coluna
+# (metadata, movements, registry) passava e estourava no .desc() com 500.
+CAMPOS_ORDENAVEIS = {"name", "price", "quantity", "min_stock", "created_at", "updated_at"}
+
 
 async def get_products(
     db: AsyncSession,
@@ -40,7 +45,9 @@ async def get_products(
     total = (await db.execute(count_query)).scalar() or 0
 
     # Ordenação
-    sort_column = getattr(Product, sort_by, Product.created_at)
+    if sort_by not in CAMPOS_ORDENAVEIS:
+        sort_by = "created_at"
+    sort_column = getattr(Product, sort_by)
     if sort_by == "name":
         query = query.order_by(sort_column.asc())
     else:
