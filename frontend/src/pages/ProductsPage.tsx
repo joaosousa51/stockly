@@ -239,9 +239,14 @@ function ProductForm({ product, onSubmit, onClose }: ProductFormProps) {
                 className="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/50 focus:outline-none" />
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1 block">Qtd. Inicial</label>
-              <input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: +e.target.value})}
-                className="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/50 focus:outline-none" />
+              <label className="text-xs font-medium text-gray-500 mb-1 block">
+                {product ? 'Qtd. em Estoque' : 'Qtd. Inicial'}
+              </label>
+              <input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: +e.target.value})} disabled={!!product}
+                className="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/50 focus:outline-none disabled:bg-gray-100" />
+              {product && (
+                <p className="text-xs text-gray-400 mt-1">Só muda por movimentação</p>
+              )}
             </div>
           </div>
 
